@@ -26,7 +26,7 @@ export default async function JoinPage({ params }: Props) {
   const room = await roomService.getByCode(code);
   if (!room) notFound();
 
-  const player = room.users.find((u) => u.userId === jwt!.userId);
+  const player = room.users.find((u) => u.userId === jwt.userId);
   if (!player) notFound();
 
   if (player.isMaster) redirect({ href: `/room/${code}/master`, locale });
@@ -56,7 +56,7 @@ export default async function JoinPage({ params }: Props) {
             </div>
           </div>
           <div className="px-6 py-8">
-            <PinEntry roomCode={code} userId={jwt!.userId} roomUserId={player.id} />
+            <PinEntry roomCode={code} userId={jwt.userId} roomUserId={player.id} />
           </div>
         </div>
 

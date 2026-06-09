@@ -8,6 +8,8 @@
 
 <!-- Entries below, newest first -->
 
+[2026-06-09] - Told user auth guard redirects unauthenticated users to login, but in reality: (1) auth guard was not actually blocking access — users could reach bank pages without a token; (2) sign-out redirected to `/login` (no locale) causing 404 instead of `/{locale}/login` - Must verify actual runtime behavior, not just read the code - Never claim a feature works based solely on reading the code; test the real flow or acknowledge uncertainty
+
 [2026-06-09] - Assumed modifying proxy.ts was enough to redirect `/` → `/{locale}`, but the middleware manifest was empty and the proxy wasn't intercepting `/`; user still got 404 - Added `src/app/page.tsx` with an explicit redirect as the guaranteed fallback - When middleware state is uncertain (empty manifest, Turbopack dev), always add an App Router page-level redirect as the source of truth; don't rely solely on proxy for root redirects
 
 [2026-06-09] - `userCode` referenced in PlayerList and old join pages was never a real field on RoomUserVO — those pages were effectively broken - Replaced the pick-from-list join flow with JWT-based user detection; PinEntry now uses User.id from JWT - Always verify referenced properties exist in the VO type before building UI around them

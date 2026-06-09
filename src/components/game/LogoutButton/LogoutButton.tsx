@@ -1,5 +1,6 @@
 'use client';
 
+import { useLocale } from 'next-intl';
 import { useUserStore } from '@/stores';
 import { useGameStore } from '@/stores';
 import { useToast } from '@/hooks';
@@ -7,6 +8,7 @@ import { useToast } from '@/hooks';
 LogoutButton.displayName = 'LogoutButton';
 
 export function LogoutButton() {
+  const locale = useLocale();
   const { clearUser } = useUserStore();
   const { clearSession } = useGameStore();
   const toast = useToast();
@@ -16,7 +18,7 @@ export function LogoutButton() {
     clearUser();
     clearSession();
     toast.success('Signed out');
-    window.location.replace('/login');
+    window.location.replace(`/${locale}/login`);
   }
 
   return (

@@ -17,7 +17,7 @@ export default function BankPage({ params }: Props) {
 
   useEffect(() => {
     if (!roomCode || !userId) {
-      router.replace(`/room/${code}`);
+      router.replace('/');
       return;
     }
     if (isMaster) {
