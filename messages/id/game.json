@@ -1,0 +1,80 @@
+{
+  "meta": {
+    "title": "BankGame — Simulasi Bank untuk Game",
+    "description": "Buat bank virtual bersama untuk permainan kamu. Lacak saldo, transfer, dan transaksi setiap pemain di ruangan."
+  },
+  "home": {
+    "headline": "Bank Virtual untuk Semua Game",
+    "sub": "Buat ruangan, undang pemain, dan kelola saldo semua orang — tanpa perlu akun.",
+    "createRoom": "Buat Ruangan",
+    "joinRoom": "Gabung Ruangan",
+    "roomName": "Nama Ruangan / Game",
+    "masterName": "Nama Kamu (Master Ruangan)",
+    "pin": "PIN (4–6 digit)",
+    "confirmPin": "Konfirmasi PIN",
+    "creating": "Membuat ruangan…",
+    "joining": "Bergabung…",
+    "roomCode": "Kode Ruangan",
+    "enterCode": "Masukkan kode ruangan",
+    "go": "Lanjut"
+  },
+  "lobby": {
+    "title": "Ruangan — {name}",
+    "code": "Kode Ruangan",
+    "players": "Pemain",
+    "joinAs": "Masuk sebagai pemain ini",
+    "master": "Master",
+    "balance": "Saldo",
+    "noPlayers": "Belum ada pemain. Minta master ruangan untuk menambahkan kamu."
+  },
+  "auth": {
+    "title": "Masukkan PIN",
+    "userCode": "Kode Pemain",
+    "pin": "PIN",
+    "submit": "Konfirmasi",
+    "invalid": "Kode atau PIN tidak valid.",
+    "verifying": "Memverifikasi…"
+  },
+  "bank": {
+    "title": "Bank Saya",
+    "balance": "Saldo",
+    "transfer": "Transfer",
+    "history": "Riwayat Transaksi",
+    "to": "Ke",
+    "amount": "Jumlah",
+    "note": "Catatan (opsional)",
+    "send": "Kirim",
+    "sending": "Mengirim…",
+    "noHistory": "Belum ada transaksi.",
+    "leaveRoom": "Keluar Ruangan"
+  },
+  "master": {
+    "title": "Master Ruangan",
+    "players": "Pemain",
+    "addPlayer": "Tambah Pemain",
+    "playerName": "Nama Pemain",
+    "playerPin": "PIN Pemain",
+    "adding": "Menambahkan…",
+    "remove": "Hapus",
+    "removing": "Menghapus…",
+    "deposit": "Setor",
+    "withdraw": "Tarik",
+    "depositing": "Menyetorkan…",
+    "withdrawing": "Menarik…",
+    "transactions": "Semua Transaksi",
+    "leaveRoom": "Keluar Ruangan"
+  },
+  "tx": {
+    "deposit": "Setor",
+    "withdraw": "Tarik",
+    "transfer": "Transfer",
+    "from": "dari",
+    "to": "ke",
+    "by": "oleh"
+  },
+  "errors": {
+    "roomNotFound": "Ruangan tidak ditemukan.",
+    "insufficientBalance": "Saldo tidak mencukupi.",
+    "generic": "Terjadi kesalahan. Silakan coba lagi."
+  }
+}

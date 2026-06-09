@@ -1,0 +1,75 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name         String
+  username     String     @unique @db.VarChar(30)
+  passwordHash String     @map("password_hash")
+  pinHash      String     @map("pin_hash")
+  createdAt    DateTime   @default(now()) @map("created_at") @db.Timestamptz()
+  roomUsers    RoomUser[]
+
+  @@index([username])
+  @@map("users")
+}
+
+model Room {
+  id           String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code         String        @unique @db.VarChar(6)
+  name         String
+  createdAt    DateTime      @default(now()) @map("created_at") @db.Timestamptz()
+  users        RoomUser[]
+  transactions Transaction[]
+
+  @@index([code])
+  @@map("rooms")
+}
+
+model RoomUser {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  roomId     String    @map("room_id") @db.Uuid
+  userId     String    @map("user_id") @db.Uuid
+  name       String
+  balance    BigInt    @default(0)
+  isMaster   Boolean   @default(false) @map("is_master")
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+
+  room       Room      @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sentTransactions     Transaction[] @relation("FromUser")
+  receivedTransactions Transaction[] @relation("ToUser")
+  createdTransactions  Transaction[] @relation("CreatedBy")
+
+  @@unique([roomId, userId])
+  @@index([roomId])
+  @@map("room_users")
+}
+
+model Transaction {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  roomId      String    @map("room_id") @db.Uuid
+  fromUserId  String?   @map("from_user_id") @db.Uuid
+  toUserId    String?   @map("to_user_id") @db.Uuid
+  amount      BigInt
+  type        String
+  note        String?
+  createdById String    @map("created_by") @db.Uuid
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+
+  room        Room      @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  fromUser    RoomUser? @relation("FromUser", fields: [fromUserId], references: [id], onDelete: SetNull)
+  toUser      RoomUser? @relation("ToUser", fields: [toUserId], references: [id], onDelete: SetNull)
+  createdBy   RoomUser  @relation("CreatedBy", fields: [createdById], references: [id], onDelete: Cascade)
+
+  @@index([roomId, createdAt(sort: Desc)])
+  @@index([fromUserId])
+  @@index([toUserId])
+  @@map("transactions")
+}

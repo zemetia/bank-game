@@ -1,0 +1,80 @@
+{
+  "meta": {
+    "title": "BankGame — Game Bank Simulator",
+    "description": "Create a shared virtual bank for your game. Track balances, transfers, and transactions for every player in the room."
+  },
+  "home": {
+    "headline": "Virtual Bank for Any Game",
+    "sub": "Create a room, invite players, and manage everyone's balance — no accounts needed.",
+    "createRoom": "Create Room",
+    "joinRoom": "Join Room",
+    "roomName": "Room / Game Name",
+    "masterName": "Your Name (Room Master)",
+    "pin": "PIN (4–6 digits)",
+    "confirmPin": "Confirm PIN",
+    "creating": "Creating room…",
+    "joining": "Joining…",
+    "roomCode": "Room Code",
+    "enterCode": "Enter room code",
+    "go": "Go"
+  },
+  "lobby": {
+    "title": "Room — {name}",
+    "code": "Room Code",
+    "players": "Players",
+    "joinAs": "Join as this player",
+    "master": "Master",
+    "balance": "Balance",
+    "noPlayers": "No players yet. Ask the room master to add you."
+  },
+  "auth": {
+    "title": "Enter PIN",
+    "userCode": "Player Code",
+    "pin": "PIN",
+    "submit": "Confirm",
+    "invalid": "Invalid code or PIN.",
+    "verifying": "Verifying…"
+  },
+  "bank": {
+    "title": "My Bank",
+    "balance": "Balance",
+    "transfer": "Transfer",
+    "history": "Transaction History",
+    "to": "To",
+    "amount": "Amount",
+    "note": "Note (optional)",
+    "send": "Send",
+    "sending": "Sending…",
+    "noHistory": "No transactions yet.",
+    "leaveRoom": "Leave Room"
+  },
+  "master": {
+    "title": "Room Master",
+    "players": "Players",
+    "addPlayer": "Add Player",
+    "playerName": "Player Name",
+    "playerPin": "Player PIN",
+    "adding": "Adding…",
+    "remove": "Remove",
+    "removing": "Removing…",
+    "deposit": "Deposit",
+    "withdraw": "Withdraw",
+    "depositing": "Depositing…",
+    "withdrawing": "Withdrawing…",
+    "transactions": "All Transactions",
+    "leaveRoom": "Leave Room"
+  },
+  "tx": {
+    "deposit": "Deposit",
+    "withdraw": "Withdraw",
+    "transfer": "Transfer",
+    "from": "from",
+    "to": "to",
+    "by": "by"
+  },
+  "errors": {
+    "roomNotFound": "Room not found.",
+    "insufficientBalance": "Insufficient balance.",
+    "generic": "Something went wrong. Please try again."
+  }
+}
