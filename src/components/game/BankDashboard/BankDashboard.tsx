@@ -63,10 +63,10 @@ export function BankDashboard({ roomCode, userId, userAccountId, isMaster, trans
     queryKey: ['user-settings'],
     queryFn: async () => {
       const res = await fetch('/api/users/settings');
-      if (!res.ok) return { transferPinEnabled: initialPinEnabled };
-      return res.json() as Promise<{ transferPinEnabled: boolean }>;
+      if (!res.ok) return { transferPinEnabled: initialPinEnabled, quickAmounts: [null, null, null] as (number | null)[] };
+      return res.json() as Promise<{ transferPinEnabled: boolean; quickAmounts: (number | null)[] }>;
     },
-    initialData: { transferPinEnabled: initialPinEnabled },
+    initialData: { transferPinEnabled: initialPinEnabled, quickAmounts: [null, null, null] as (number | null)[] },
   });
 
   const room = roomQuery.data;
@@ -76,6 +76,7 @@ export function BankDashboard({ roomCode, userId, userAccountId, isMaster, trans
   const bankEnabled = room?.bankCentralEnabled ?? initialBankEnabled;
   const bankBalance = room?.bankCentralBalance ?? initialBankBalance;
   const requirePin = settingsQuery.data?.transferPinEnabled ?? initialPinEnabled;
+  const quickAmounts = settingsQuery.data?.quickAmounts;
 
   const BANK_TYPES = new Set(['bank_deposit', 'bank_withdraw', 'bank_to_user', 'user_to_bank']);
   const bankTx = (txQuery.data ?? []).filter((tx) => BANK_TYPES.has(tx.type));
@@ -167,7 +168,7 @@ export function BankDashboard({ roomCode, userId, userAccountId, isMaster, trans
 
       {/* Tabs */}
       <Tabs defaultValue="account">
-        <TabsList>
+        <TabsList className='mb-4'>
           <TabsTrigger value="account">
             <CreditCard className="h-4 w-4 shrink-0" />
             Account
@@ -259,6 +260,7 @@ export function BankDashboard({ roomCode, userId, userAccountId, isMaster, trans
                   users={room.users}
                   requirePin={requirePin}
                   bankCentralEnabled={bankEnabled}
+                  quickAmounts={quickAmounts}
                   onSuccess={refresh}
                 />
               </div>
@@ -288,7 +290,7 @@ export function BankDashboard({ roomCode, userId, userAccountId, isMaster, trans
               </div>
               <div className="flex-1">
                 <p className="text-xs text-foreground-muted">Bank Central Balance</p>
-                <p className="font-mono text-sm font-semibold tabular-nums text-foreground">
+                <p className="font-mono text-md font-semibold tabular-nums text-foreground">
                   {bankBalance.toLocaleString()}
                 </p>
               </div>

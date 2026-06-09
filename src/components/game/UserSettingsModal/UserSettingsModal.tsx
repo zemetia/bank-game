@@ -1,11 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { X, UserCircle2, KeyRound, Lock, Trash2 } from 'lucide-react';
+import { X, UserCircle2, KeyRound, Lock, Trash2, Landmark, Zap } from 'lucide-react';
 import { useToast } from '@/hooks';
 import { useUserStore } from '@/stores';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/Tabs';
 import type { UserVO } from '@/types/value-objects';
 
 UserSettingsModal.displayName = 'UserSettingsModal';
@@ -22,7 +23,6 @@ export function UserSettingsModal({ open, onClose }: Props) {
     <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto p-4 py-12" role="dialog" aria-modal="true">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} aria-hidden="true" />
       <div className="relative z-10 w-full max-w-md rounded-2xl border border-border bg-surface shadow-2xl">
-        {/* Header */}
         <div className="flex items-center justify-between border-b border-border px-6 py-4">
           <h2 className="text-base font-semibold text-foreground">Account Settings</h2>
           <button
@@ -34,13 +34,24 @@ export function UserSettingsModal({ open, onClose }: Props) {
           </button>
         </div>
 
-        <div className="flex flex-col divide-y divide-border">
-          <ChangeNameSection onClose={onClose} />
-          <TransferPinSection />
-          <ChangePasswordSection />
-          <ChangePinSection />
-          <DeleteAccountSection onClose={onClose} />
-        </div>
+        <Tabs defaultValue="general" className="px-0">
+          <TabsList className="mx-6 mt-4">
+            <TabsTrigger value="general">General</TabsTrigger>
+            <TabsTrigger value="bank">Bank</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="general" className="flex flex-col divide-y divide-border pb-2">
+            <ChangeNameSection onClose={onClose} />
+            <ChangePasswordSection />
+            <ChangePinSection />
+            <DeleteAccountSection onClose={onClose} />
+          </TabsContent>
+
+          <TabsContent value="bank" className="flex flex-col divide-y divide-border pb-2">
+            <TransferPinSection />
+            <QuickAmountsSection />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
@@ -111,68 +122,6 @@ function ChangeNameSection({ onClose }: { onClose: () => void }) {
 }
 
 ChangeNameSection.displayName = 'ChangeNameSection';
-
-// --- Transfer PIN Toggle ---
-function TransferPinSection() {
-  const toast = useToast();
-  const [pinEnabled, setPinEnabled] = useState<boolean | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [fetched, setFetched] = useState(false);
-
-  async function fetchSetting() {
-    if (fetched) return;
-    setFetched(true);
-    try {
-      const res = await fetch('/api/users/settings');
-      if (res.ok) {
-        const data = await res.json() as { transferPinEnabled: boolean };
-        setPinEnabled(data.transferPinEnabled);
-      }
-    } catch { /* ignore */ }
-  }
-
-  async function handleToggle() {
-    const next = !pinEnabled;
-    setLoading(true);
-    try {
-      const res = await fetch('/api/users/settings', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ transferPinEnabled: next }),
-      });
-      if (!res.ok) throw new Error('Failed');
-      setPinEnabled(next);
-      toast.success(next ? 'PIN required for transfers' : 'PIN disabled for transfers');
-    } catch {
-      toast.error('Failed to update setting');
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  return (
-    <div className="px-6 py-5" onFocus={fetchSetting} onMouseEnter={fetchSetting}>
-      <div className="flex items-center gap-3">
-        <div className="flex-1">
-          <p className="text-sm font-medium text-foreground">Require PIN for transfers</p>
-          <p className="text-xs text-foreground-muted">
-            When on, each bank transfer requires your PIN to confirm
-          </p>
-        </div>
-        <Button
-          size="sm"
-          variant={pinEnabled ? 'primary' : 'outline'}
-          onClick={handleToggle}
-          disabled={loading || pinEnabled === null}
-        >
-          {pinEnabled === null ? '…' : pinEnabled ? 'On' : 'Off'}
-        </Button>
-      </div>
-    </div>
-  );
-}
-
-TransferPinSection.displayName = 'TransferPinSection';
 
 // --- Change Password ---
 function ChangePasswordSection() {
@@ -415,3 +364,141 @@ function DeleteAccountSection({ onClose }: { onClose: () => void }) {
 
 DeleteAccountSection.displayName = 'DeleteAccountSection';
 
+// --- Transfer PIN Toggle ---
+function TransferPinSection() {
+  const toast = useToast();
+  const [pinEnabled, setPinEnabled] = useState<boolean | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [fetched, setFetched] = useState(false);
+
+  async function fetchSetting() {
+    if (fetched) return;
+    setFetched(true);
+    try {
+      const res = await fetch('/api/users/settings');
+      if (res.ok) {
+        const data = await res.json() as { transferPinEnabled: boolean };
+        setPinEnabled(data.transferPinEnabled);
+      }
+    } catch { /* ignore */ }
+  }
+
+  async function handleToggle() {
+    const next = !pinEnabled;
+    setLoading(true);
+    try {
+      const res = await fetch('/api/users/settings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ transferPinEnabled: next }),
+      });
+      if (!res.ok) throw new Error('Failed');
+      setPinEnabled(next);
+      toast.success(next ? 'PIN required for transfers' : 'PIN disabled for transfers');
+    } catch {
+      toast.error('Failed to update setting');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="px-6 py-5" onFocus={fetchSetting} onMouseEnter={fetchSetting}>
+      <SectionHeader icon={<Landmark className="h-3.5 w-3.5" />} title="Transfer Security" />
+      <div className="flex items-center gap-3 px-6 pb-2">
+        <div className="flex-1">
+          <p className="text-sm font-medium text-foreground">Require PIN for transfers</p>
+          <p className="text-xs text-foreground-muted">
+            When on, each bank transfer requires your PIN to confirm
+          </p>
+        </div>
+        <Button
+          size="sm"
+          variant={pinEnabled ? 'primary' : 'outline'}
+          onClick={handleToggle}
+          disabled={loading || pinEnabled === null}
+        >
+          {pinEnabled === null ? '…' : pinEnabled ? 'On' : 'Off'}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+TransferPinSection.displayName = 'TransferPinSection';
+
+// --- Quick Amounts ---
+type QuickAmountTuple = [number | null, number | null, number | null];
+
+function QuickAmountsSection() {
+  const toast = useToast();
+  const [values, setValues] = useState<QuickAmountTuple>([null, null, null]);
+  const [fetched, setFetched] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  async function fetchSetting() {
+    if (fetched) return;
+    setFetched(true);
+    try {
+      const res = await fetch('/api/users/settings');
+      if (res.ok) {
+        const data = await res.json() as { quickAmounts: QuickAmountTuple };
+        setValues(data.quickAmounts ?? [null, null, null]);
+      }
+    } catch { /* ignore */ }
+  }
+
+  function handleChange(index: 0 | 1 | 2, raw: string) {
+    const num = raw === '' ? null : Math.max(0, Math.round(Number(raw)));
+    const next: QuickAmountTuple = [...values] as QuickAmountTuple;
+    next[index] = Number.isNaN(num) ? null : num;
+    setValues(next);
+  }
+
+  async function handleSave(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const res = await fetch('/api/users/settings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ quickAmounts: values }),
+      });
+      if (!res.ok) throw new Error('Failed');
+      toast.success('Quick amounts saved');
+    } catch {
+      toast.error('Failed to save');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="pb-6" onFocus={fetchSetting} onMouseEnter={fetchSetting}>
+      <SectionHeader icon={<Zap className="h-3.5 w-3.5" />} title="Quick Amounts" />
+      <form onSubmit={handleSave} className="flex flex-col gap-3 px-6">
+        <p className="text-xs text-foreground-muted">
+          Set up to 3 amounts. In the transfer form, quick buttons will let you add or subtract each preset instantly.
+        </p>
+        {([0, 1, 2] as const).map((i) => (
+          <Input
+            key={i}
+            label={`Preset ${i + 1}`}
+            type="number"
+            min={0}
+            step={1}
+            value={values[i] ?? ''}
+            onChange={(e) => handleChange(i, e.target.value)}
+            placeholder="Leave empty to disable"
+            leftAddon={<span className="text-xs font-semibold">$</span>}
+          />
+        ))}
+        <Button type="submit" size="sm" isLoading={loading}>
+          Save Quick Amounts
+        </Button>
+      </form>
+    </div>
+  );
+}
+
+QuickAmountsSection.displayName = 'QuickAmountsSection';

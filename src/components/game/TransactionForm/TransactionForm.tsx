@@ -26,10 +26,11 @@ interface Props {
   users: RoomUserVO[];
   requirePin: boolean;
   bankCentralEnabled?: boolean;
+  quickAmounts?: (number | null)[];
   onSuccess?: () => void;
 }
 
-export function TransactionForm({ roomCode, currentUserId, userAccountId, users, requirePin, bankCentralEnabled, onSuccess }: Props) {
+export function TransactionForm({ roomCode, currentUserId, userAccountId, users, requirePin, bankCentralEnabled, quickAmounts, onSuccess }: Props) {
   const toast = useToast();
 
   const [toUserId, setToUserId] = useState('');
@@ -40,6 +41,14 @@ export function TransactionForm({ roomCode, currentUserId, userAccountId, users,
   const others = users.filter((u) => u.id !== currentUserId);
   const recipient = others.find((u) => u.id === toUserId);
   const isBankCentral = toUserId === BANK_CENTRAL_ID;
+
+  const activePresets: number[] = (quickAmounts ?? []).filter((v): v is number => v !== null && v > 0).flatMap(n => [n, -n]).sort((a,b) => a-b);
+
+  function applyPreset(value: number) {
+    const current = parseFloat(amount) || 0;
+    const next = Math.max(0, current + value);
+    setAmount(next === 0 ? '' : String(next));
+  }
 
   async function executeTransfer() {
     const body: Record<string, unknown> = {
@@ -135,17 +144,35 @@ export function TransactionForm({ roomCode, currentUserId, userAccountId, users,
           </Select>
         </div>
 
-        <Input
-          label="Amount"
-          type="number"
-          min={1}
-          step={1}
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-          required
-          placeholder="0"
-          leftAddon={<span className="text-xs font-semibold">$</span>}
-        />
+        <div className="flex flex-col gap-1.5">
+          <Input
+            label="Amount"
+            type="number"
+            min={1}
+            step={1}
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            required
+            placeholder="0"
+            leftAddon={<span className="text-xs font-semibold">$</span>}
+          />
+          {activePresets.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 pt-0.5">
+              {activePresets.map((v: number) => (
+                <div key={v} className="flex gap-1">
+                  <button
+                    type="button"
+                    onClick={() => applyPreset(v)}
+                    className={ v < 0 ? "rounded-md border border-border bg-surface-raised px-2 py-0.5 font-mono text-xs text-foreground-muted transition-colors hover:border-destructive/50 hover:bg-destructive-subtle hover:text-destructive":
+                      "rounded-md border border-border bg-surface-raised px-2 py-0.5 font-mono text-xs text-foreground-muted transition-colors hover:border-success/50 hover:bg-success-subtle hover:text-success"}
+                  >
+                    { v > 0 ? "+" : ""}{v.toLocaleString()}
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
         <Input
           label="Note (optional)"

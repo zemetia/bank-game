@@ -14,6 +14,9 @@ model User {
   passwordHash       String     @map("password_hash")
   pinHash            String     @map("pin_hash")
   transferPinEnabled Boolean    @default(true) @map("transfer_pin_enabled")
+  quickAmount1       BigInt?    @map("quick_amount_1")
+  quickAmount2       BigInt?    @map("quick_amount_2")
+  quickAmount3       BigInt?    @map("quick_amount_3")
   createdAt          DateTime   @default(now()) @map("created_at") @db.Timestamptz()
   roomUsers          RoomUser[]
 
