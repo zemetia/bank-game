@@ -18,7 +18,7 @@ export default async function LoginPage({ params, searchParams }: Props) {
   const { locale } = await params;
   const cookieStore = await cookies();
   const token = cookieStore.get('auth_token')?.value;
-  if (token && verifyJwt(token)) {
+  if (token && (await verifyJwt(token))) {
     redirect({ href: '/', locale });
   }
 

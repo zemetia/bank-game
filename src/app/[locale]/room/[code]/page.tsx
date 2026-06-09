@@ -33,7 +33,7 @@ export default async function LobbyPage({ params }: Props) {
 
   const cookieStore = await cookies();
   const token = cookieStore.get('auth_token')?.value;
-  const jwt = token ? verifyJwt(token) : null;
+  const jwt = token ? await verifyJwt(token) : null;
 
   const currentRoomUser = jwt
     ? (room.users.find((u) => u.userId === jwt.userId) ?? null)

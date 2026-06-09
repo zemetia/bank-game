@@ -39,7 +39,7 @@ export async function applyAuthGuard(request: NextRequest): Promise<NextResponse
   if (PUBLIC_PAGE_PATHS.some((p) => normalized === p || normalized.startsWith(`${p}/`))) return null;
 
   const token = request.cookies.get('auth_token')?.value;
-  if (token && verifyJwt(token)) return null;
+  if (token && (await verifyJwt(token))) return null;
 
   const locale = detectLocale(request);
   const loginUrl = new URL(`/${locale}/login`, request.url);

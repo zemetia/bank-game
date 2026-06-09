@@ -6,7 +6,7 @@ import { verifyJwt } from '@/lib/jwt';
 export async function GET() {
   const cookieStore = await cookies();
   const token = cookieStore.get('auth_token')?.value;
-  const jwt = token ? verifyJwt(token) : null;
+  const jwt = token ? await verifyJwt(token) : null;
   if (!jwt) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }

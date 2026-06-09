@@ -20,7 +20,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Invalid username or password' }, { status: 401 });
   }
 
-  const token = signJwt({ userId: user.id, username: user.username, name: user.name });
+  const token = await signJwt({ userId: user.id, username: user.username, name: user.name });
 
   const res = NextResponse.json({ user });
   res.cookies.set('auth_token', token, {

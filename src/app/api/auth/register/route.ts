@@ -29,7 +29,7 @@ export async function POST(req: Request) {
       parsed.data.pin,
     );
 
-    const token = signJwt({ userId: user.id, username: user.username, name: user.name });
+    const token = await signJwt({ userId: user.id, username: user.username, name: user.name });
 
     const res = NextResponse.json({ user }, { status: 201 });
     res.cookies.set('auth_token', token, {
