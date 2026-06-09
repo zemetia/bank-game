@@ -5,6 +5,7 @@ export interface RoomUserVO {
   name: string;
   balance: number;
   isMaster: boolean;
+  transferPinEnabled: boolean;
   createdAt: Date;
 }
 

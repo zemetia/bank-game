@@ -10,6 +10,7 @@ function toVO(u: {
   balance: bigint;
   isMaster: boolean;
   createdAt: Date;
+  user?: { transferPinEnabled: boolean };
 }): RoomUserVO {
   return {
     id: u.id,
@@ -18,6 +19,7 @@ function toVO(u: {
     name: u.name,
     balance: Number(u.balance),
     isMaster: u.isMaster,
+    transferPinEnabled: u.user?.transferPinEnabled ?? true,
     createdAt: u.createdAt,
   };
 }

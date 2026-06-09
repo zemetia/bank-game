@@ -1,4 +1,4 @@
-export type TransactionType = 'deposit' | 'withdraw' | 'transfer';
+export type TransactionType = 'deposit' | 'withdraw' | 'transfer' | 'bank_deposit' | 'bank_withdraw' | 'bank_to_user' | 'user_to_bank';
 
 export interface TransactionVO {
   id: string;

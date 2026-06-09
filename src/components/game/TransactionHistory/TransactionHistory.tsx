@@ -41,6 +41,42 @@ function getTxMeta(tx: TransactionVO, currentUserId?: string): TxMeta {
       bgClass: 'bg-destructive-subtle text-destructive',
     };
   }
+  if (tx.type === 'bank_deposit') {
+    return {
+      icon: <Coins className="h-4 w-4" />,
+      label: 'Bank Deposit',
+      sign: '+',
+      colorClass: 'text-success',
+      bgClass: 'bg-success-subtle text-success',
+    };
+  }
+  if (tx.type === 'bank_withdraw') {
+    return {
+      icon: <ArrowUpRight className="h-4 w-4" />,
+      label: 'Bank Withdrawal',
+      sign: '−',
+      colorClass: 'text-destructive',
+      bgClass: 'bg-destructive-subtle text-destructive',
+    };
+  }
+  if (tx.type === 'bank_to_user') {
+    return {
+      icon: <ArrowUpRight className="h-4 w-4" />,
+      label: `To ${tx.toUserName ?? 'Unknown'}`,
+      sign: '−',
+      colorClass: 'text-destructive',
+      bgClass: 'bg-destructive-subtle text-destructive',
+    };
+  }
+  if (tx.type === 'user_to_bank') {
+    return {
+      icon: <ArrowDownLeft className="h-4 w-4" />,
+      label: `From ${tx.fromUserName ?? 'Unknown'}`,
+      sign: '+',
+      colorClass: 'text-success',
+      bgClass: 'bg-success-subtle text-success',
+    };
+  }
   if (isIncoming) {
     return {
       icon: <ArrowDownLeft className="h-4 w-4" />,

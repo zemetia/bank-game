@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { SendHorizonal, User } from 'lucide-react';
+import { SendHorizonal, User, Landmark } from 'lucide-react';
 import { useToast } from '@/hooks';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -13,21 +13,24 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { PinOverlay } from '../PinOverlay';
-import { useUserStore } from '@/stores';
 import type { RoomUserVO } from '@/types/value-objects';
 
 TransactionForm.displayName = 'TransactionForm';
 
+const BANK_CENTRAL_ID = '__bank_central';
+
 interface Props {
   roomCode: string;
   currentUserId: string;
+  userAccountId: string;
   users: RoomUserVO[];
+  requirePin: boolean;
+  bankCentralEnabled?: boolean;
   onSuccess?: () => void;
 }
 
-export function TransactionForm({ roomCode, currentUserId, users, onSuccess }: Props) {
+export function TransactionForm({ roomCode, currentUserId, userAccountId, users, requirePin, bankCentralEnabled, onSuccess }: Props) {
   const toast = useToast();
-  const { userId: userAccountId } = useUserStore();
 
   const [toUserId, setToUserId] = useState('');
   const [amount, setAmount] = useState('');
@@ -36,11 +39,46 @@ export function TransactionForm({ roomCode, currentUserId, users, onSuccess }: P
 
   const others = users.filter((u) => u.id !== currentUserId);
   const recipient = others.find((u) => u.id === toUserId);
+  const isBankCentral = toUserId === BANK_CENTRAL_ID;
+
+  async function executeTransfer() {
+    const body: Record<string, unknown> = {
+      amount: Math.round(parseFloat(amount)),
+      note: note || undefined,
+      requesterId: currentUserId,
+    };
+    if (isBankCentral) {
+      body.type = 'user_to_bank';
+      body.fromUserId = currentUserId;
+    } else {
+      body.type = 'transfer';
+      body.fromUserId = currentUserId;
+      body.toUserId = toUserId;
+    }
+
+    const txRes = await fetch(`/api/rooms/${roomCode}/transactions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    const txData = await txRes.json() as { error?: string };
+    if (!txRes.ok) throw new Error(txData.error ?? 'Transfer failed');
+
+    toast.success(isBankCentral ? 'Sent to Bank Central' : 'Transfer sent');
+    setToUserId('');
+    setAmount('');
+    setNote('');
+    onSuccess?.();
+  }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!toUserId || !amount) return;
-    setPinPending(true);
+    if (requirePin) {
+      setPinPending(true);
+    } else {
+      void executeTransfer();
+    }
   }
 
   async function handlePinConfirm(pin: string) {
@@ -52,27 +90,8 @@ export function TransactionForm({ roomCode, currentUserId, users, onSuccess }: P
     const data = await res.json() as { error?: string };
     if (!res.ok) throw new Error(data.error ?? 'Invalid PIN');
 
-    const txRes = await fetch(`/api/rooms/${roomCode}/transactions`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        type: 'transfer',
-        fromUserId: currentUserId,
-        toUserId,
-        amount: Math.round(parseFloat(amount)),
-        note: note || undefined,
-        requesterId: currentUserId,
-      }),
-    });
-    const txData = await txRes.json() as { error?: string };
-    if (!txRes.ok) throw new Error(txData.error ?? 'Transfer failed');
-
-    toast.success('Transfer sent');
+    await executeTransfer();
     setPinPending(false);
-    setToUserId('');
-    setAmount('');
-    setNote('');
-    onSuccess?.();
   }
 
   return (
@@ -80,7 +99,7 @@ export function TransactionForm({ roomCode, currentUserId, users, onSuccess }: P
       {pinPending && (
         <PinOverlay
           title="Confirm Transfer"
-          subtitle={recipient ? `To ${recipient.name} · ${parseInt(amount, 10).toLocaleString()}` : undefined}
+          subtitle={isBankCentral ? `To Bank Central · ${parseInt(amount, 10).toLocaleString()}` : recipient ? `To ${recipient.name} · ${parseInt(amount, 10).toLocaleString()}` : undefined}
           onConfirm={handlePinConfirm}
           onCancel={() => setPinPending(false)}
         />
@@ -97,7 +116,15 @@ export function TransactionForm({ roomCode, currentUserId, users, onSuccess }: P
               </div>
             </SelectTrigger>
             <SelectContent>
-              {others.length === 0 ? (
+              {bankCentralEnabled && (
+                <SelectItem value={BANK_CENTRAL_ID}>
+                  <div className="flex items-center gap-2">
+                    <Landmark className="h-3.5 w-3.5 shrink-0" />
+                    Bank Central
+                  </div>
+                </SelectItem>
+              )}
+              {others.length === 0 && !bankCentralEnabled ? (
                 <SelectItem value="__none" disabled>No other players</SelectItem>
               ) : (
                 others.map((u) => (
@@ -134,7 +161,7 @@ export function TransactionForm({ roomCode, currentUserId, users, onSuccess }: P
           fullWidth
           rightIcon={<SendHorizonal className="h-4 w-4" />}
         >
-          Send Transfer
+          {requirePin ? 'Send Transfer' : 'Send Transfer (no PIN)'}
         </Button>
       </form>
     </>

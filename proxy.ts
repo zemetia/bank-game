@@ -2,10 +2,10 @@ import createMiddleware from 'next-intl/middleware';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-import { routing } from './i18n/routing';
-import { applyRateLimit } from './proxy/rate-limit';
-import { applySecurityHeaders } from './proxy/security-headers';
-import { applyAuthGuard } from './proxy/auth-guard';
+import { routing } from './src/i18n/routing';
+import { applyRateLimit } from './src/proxy/rate-limit';
+import { applySecurityHeaders } from './src/proxy/security-headers';
+import { applyAuthGuard } from './src/proxy/auth-guard';
 
 const intlMiddleware = createMiddleware(routing);
 

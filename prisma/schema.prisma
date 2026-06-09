@@ -8,25 +8,28 @@ datasource db {
 }
 
 model User {
-  id           String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name         String
-  username     String     @unique @db.VarChar(30)
-  passwordHash String     @map("password_hash")
-  pinHash      String     @map("pin_hash")
-  createdAt    DateTime   @default(now()) @map("created_at") @db.Timestamptz()
-  roomUsers    RoomUser[]
+  id                 String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name               String
+  username           String     @unique @db.VarChar(30)
+  passwordHash       String     @map("password_hash")
+  pinHash            String     @map("pin_hash")
+  transferPinEnabled Boolean    @default(true) @map("transfer_pin_enabled")
+  createdAt          DateTime   @default(now()) @map("created_at") @db.Timestamptz()
+  roomUsers          RoomUser[]
 
   @@index([username])
   @@map("users")
 }
 
 model Room {
-  id           String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  code         String        @unique @db.VarChar(6)
-  name         String
-  createdAt    DateTime      @default(now()) @map("created_at") @db.Timestamptz()
-  users        RoomUser[]
-  transactions Transaction[]
+  id                   String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code                 String        @unique @db.VarChar(6)
+  name                 String
+  bankCentralEnabled   Boolean       @default(false) @map("bank_central_enabled")
+  bankCentralBalance   BigInt        @default(0) @map("bank_central_balance")
+  createdAt            DateTime      @default(now()) @map("created_at") @db.Timestamptz()
+  users                RoomUser[]
+  transactions         Transaction[]
 
   @@index([code])
   @@map("rooms")

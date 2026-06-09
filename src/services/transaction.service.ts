@@ -115,6 +115,65 @@ export const transactionService = {
       ],
     });
   },
+
+  async bankDeposit(
+    roomId: string,
+    amount: number,
+    createdBy: string,
+    note?: string,
+  ): Promise<TransactionVO> {
+    return _createBankTransaction({
+      roomId, amount, type: 'bank_deposit', createdBy, note,
+      bankDelta: amount,
+    });
+  },
+
+  async bankWithdraw(
+    roomId: string,
+    amount: number,
+    createdBy: string,
+    note?: string,
+  ): Promise<TransactionVO> {
+    await _assertSufficientBankBalance(roomId, amount);
+    return _createBankTransaction({
+      roomId, amount, type: 'bank_withdraw', createdBy, note,
+      bankDelta: -amount,
+    });
+  },
+
+  async bankToUser(
+    roomId: string,
+    toUserId: string,
+    amount: number,
+    createdBy: string,
+    note?: string,
+  ): Promise<TransactionVO> {
+    await _assertSufficientBankBalance(roomId, amount);
+    return _createBankTransaction({
+      roomId, toUserId, amount, type: 'bank_to_user', createdBy, note,
+      bankDelta: -amount,
+      userBalanceUpdates: [{ id: toUserId, delta: amount }],
+    });
+  },
+
+  async userToBank(
+    roomId: string,
+    fromUserId: string,
+    amount: number,
+    createdBy: string,
+    note?: string,
+  ): Promise<TransactionVO> {
+    await _assertSufficientBalance(fromUserId, amount);
+    return _createBankTransaction({
+      roomId, fromUserId, amount, type: 'user_to_bank', createdBy, note,
+      bankDelta: amount,
+      userBalanceUpdates: [{ id: fromUserId, delta: -amount }],
+    });
+  },
+
+  async clearHistory(roomId: string): Promise<void> {
+    await prisma.transaction.deleteMany({ where: { roomId } });
+  },
 };
 
 async function _assertSufficientBalance(userId: string, amount: number): Promise<void> {
@@ -123,6 +182,52 @@ async function _assertSufficientBalance(userId: string, amount: number): Promise
     select: { balance: true },
   });
   if (!ru || Number(ru.balance) < amount) throw new Error('Insufficient balance');
+}
+
+async function _assertSufficientBankBalance(roomId: string, amount: number): Promise<void> {
+  const room = await prisma.room.findUnique({ where: { id: roomId }, select: { bankCentralBalance: true } });
+  if (!room || Number(room.bankCentralBalance) < amount) throw new Error('Insufficient bank balance');
+}
+
+async function _createBankTransaction(params: {
+  roomId: string;
+  fromUserId?: string;
+  toUserId?: string;
+  amount: number;
+  type: TransactionType;
+  createdBy: string;
+  note?: string;
+  bankDelta: number;
+  userBalanceUpdates?: { id: string; delta: number }[];
+}): Promise<TransactionVO> {
+  const { roomId, fromUserId, toUserId, amount, type, createdBy, note, bankDelta, userBalanceUpdates = [] } = params;
+
+  const tx = await prisma.$transaction(async (p) => {
+    const created = await p.transaction.create({
+      data: {
+        roomId,
+        fromUserId: fromUserId ?? null,
+        toUserId: toUserId ?? null,
+        amount,
+        type,
+        note: note ?? null,
+        createdById: createdBy,
+      },
+      include: txInclude,
+    });
+
+    await p.room.update({ where: { id: roomId }, data: { bankCentralBalance: { increment: bankDelta } } });
+
+    await Promise.all(
+      userBalanceUpdates.map(({ id, delta }) =>
+        p.roomUser.update({ where: { id }, data: { balance: { increment: delta } } }),
+      ),
+    );
+
+    return created;
+  });
+
+  return toVO(tx);
 }
 
 async function _createAndUpdateBalance(params: {

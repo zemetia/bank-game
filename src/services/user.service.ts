@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import { hashPassword, verifyPassword } from '@/lib/password';
-import { hashPin } from '@/lib/pin';
+import { hashPin, verifyPin } from '@/lib/pin';
 import type { UserVO } from '@/types/value-objects';
 
 function toVO(row: { id: string; name: string; username: string; createdAt: Date }): UserVO {
@@ -48,5 +48,49 @@ export const userService = {
       select: { id: true, name: true },
     });
     return user ?? null;
+  },
+
+  async changeName(userId: string, newName: string): Promise<UserVO> {
+    const user = await prisma.user.update({
+      where: { id: userId },
+      data: { name: newName },
+      select: { id: true, name: true, username: true, createdAt: true },
+    });
+    return toVO(user);
+  },
+
+  async changePassword(userId: string, currentPassword: string, newPassword: string): Promise<void> {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { passwordHash: true },
+    });
+    if (!user) throw new Error('User not found');
+    const ok = await verifyPassword(currentPassword, user.passwordHash);
+    if (!ok) throw new Error('Current password is incorrect');
+    const passwordHash = await hashPassword(newPassword);
+    await prisma.user.update({ where: { id: userId }, data: { passwordHash } });
+  },
+
+  async changePin(userId: string, currentPin: string, newPin: string): Promise<void> {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { pinHash: true },
+    });
+    if (!user) throw new Error('User not found');
+    const ok = await verifyPin(currentPin, user.pinHash);
+    if (!ok) throw new Error('Current PIN is incorrect');
+    const pinHash = await hashPin(newPin);
+    await prisma.user.update({ where: { id: userId }, data: { pinHash } });
+  },
+
+  async deleteAccount(userId: string, password: string): Promise<void> {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { passwordHash: true },
+    });
+    if (!user) throw new Error('User not found');
+    const ok = await verifyPassword(password, user.passwordHash);
+    if (!ok) throw new Error('Password is incorrect');
+    await prisma.user.delete({ where: { id: userId } });
   },
 };

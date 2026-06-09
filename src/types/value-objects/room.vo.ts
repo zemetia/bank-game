@@ -10,4 +10,6 @@ export interface RoomVO {
 export interface RoomWithUsersVO extends RoomVO {
   users: RoomUserVO[];
   master: RoomUserVO | undefined;
+  bankCentralEnabled: boolean;
+  bankCentralBalance: number;
 }

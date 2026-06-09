@@ -9,7 +9,8 @@ import { useGameStore } from '@/stores';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { CreateRoomModal } from '../CreateRoomModal';
-import { Landmark, ChevronRight, UserCircle2, LogOut } from 'lucide-react';
+import { UserSettingsModal } from '../UserSettingsModal';
+import { Landmark, ChevronRight, UserCircle2, LogOut, Settings } from 'lucide-react';
 import type { RoomVO } from '@/types/value-objects';
 
 interface Props {
@@ -24,6 +25,7 @@ HomeLanding.displayName = 'HomeLanding';
 export function HomeLanding({ headline, sub, createLabel, createTitle }: Props) {
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const router = useRouter();
   const toast = useToast();
   const { userId, name, clearUser } = useUserStore();
@@ -65,6 +67,8 @@ export function HomeLanding({ headline, sub, createLabel, createTitle }: Props) 
 
   return (
     <>
+      <UserSettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
+
       <div className="flex min-h-screen flex-col items-center justify-center px-4 py-16">
 
         {/* Brand header */}
@@ -127,13 +131,22 @@ export function HomeLanding({ headline, sub, createLabel, createTitle }: Props) 
                 <span className="font-medium">{name}</span>
               </span>
             </div>
-            <button
-              onClick={handleSignOut}
-              className="flex items-center gap-1.5 text-xs text-foreground-subtle transition-colors hover:text-destructive"
-            >
-              <LogOut className="h-3 w-3" />
-              Sign out
-            </button>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setSettingsOpen(true)}
+                className="flex items-center gap-1 rounded-md p-1.5 text-xs text-foreground-subtle transition-colors hover:bg-surface-overlay hover:text-foreground"
+                aria-label="Account settings"
+              >
+                <Settings className="h-3.5 w-3.5" />
+              </button>
+              <button
+                onClick={handleSignOut}
+                className="flex items-center gap-1.5 text-xs text-foreground-subtle transition-colors hover:text-destructive"
+              >
+                <LogOut className="h-3 w-3" />
+                Sign out
+              </button>
+            </div>
           </div>
         </div>
 

@@ -1,0 +1,1 @@
+export { BankCentralDashboard } from './BankCentralDashboard';

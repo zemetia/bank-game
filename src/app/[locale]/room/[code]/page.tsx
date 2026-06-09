@@ -5,7 +5,7 @@ import { roomService } from '@/services';
 import { verifyJwt } from '@/lib/jwt';
 import { Badge } from '@/components/ui/Badge';
 import { LobbyActions } from '@/components/game/LobbyActions';
-import { Hash, Users } from 'lucide-react';
+import { Hash, Users, Building2 } from 'lucide-react';
 
 interface Props {
   params: Promise<{ locale: string; code: string }>;
@@ -70,6 +70,22 @@ export default async function LobbyPage({ params }: Props) {
             </div>
           </div>
         </div>
+
+        {/* Bank Central pocket */}
+        {room.bankCentralEnabled && (
+          <div className="mb-6 flex items-center gap-3 rounded-xl border border-border bg-surface/80 px-4 py-3 backdrop-blur-sm">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary-subtle">
+              <Building2 className="h-4 w-4 text-primary" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-foreground">Bank Central</p>
+              <p className="text-xs text-foreground-muted">Shared pocket</p>
+            </div>
+            <span className="font-mono text-sm font-bold tabular-nums text-foreground">
+              {room.bankCentralBalance.toLocaleString()}
+            </span>
+          </div>
+        )}
 
         {/* Players list */}
         <div className="mb-6">

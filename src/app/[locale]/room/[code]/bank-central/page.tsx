@@ -3,13 +3,13 @@ import { notFound } from 'next/navigation';
 import { redirect } from '@/i18n/navigation';
 import { roomService } from '@/services';
 import { verifyJwt } from '@/lib/jwt';
-import { BankDashboard } from '@/components/game/BankDashboard';
+import { BankCentralDashboard } from '@/components/game/BankCentralDashboard';
 
 interface Props {
   params: Promise<{ locale: string; code: string }>;
 }
 
-export default async function BankPage({ params }: Props) {
+export default async function BankCentralPage({ params }: Props) {
   const { locale, code } = await params;
 
   const cookieStore = await cookies();
@@ -23,17 +23,19 @@ export default async function BankPage({ params }: Props) {
   const roomUser = room.users.find((u) => u.userId === jwt.userId);
   if (!roomUser) { redirect({ href: '/', locale }); return null; }
 
+  if (!roomUser.isMaster) { redirect({ href: `/room/${code}/bank`, locale }); return null; }
+
+  if (!room.bankCentralEnabled) { redirect({ href: `/room/${code}/master`, locale }); return null; }
+
   return (
     <main className="min-h-screen">
       <div className="mx-auto max-w-lg px-4 pb-16 pt-10">
-        <BankDashboard
+        <BankCentralDashboard
           roomCode={code}
-          userId={roomUser.id}
-          userAccountId={jwt.userId}
-          isMaster={roomUser.isMaster}
-          transferPinEnabled={roomUser.transferPinEnabled}
-          bankCentralEnabled={room.bankCentralEnabled}
-          bankCentralBalance={room.bankCentralBalance}
+          masterId={roomUser.id}
+          masterUserId={jwt.userId}
+          initialBankBalance={room.bankCentralBalance}
+          initialBankCentralEnabled={room.bankCentralEnabled}
         />
       </div>
     </main>

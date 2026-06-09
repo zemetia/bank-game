@@ -12,6 +12,7 @@ function toRoomUserVO(u: {
   balance: bigint;
   isMaster: boolean;
   createdAt: Date;
+  user: { transferPinEnabled: boolean };
 }): RoomUserVO {
   return {
     id: u.id,
@@ -20,6 +21,7 @@ function toRoomUserVO(u: {
     name: u.name,
     balance: Number(u.balance),
     isMaster: u.isMaster,
+    transferPinEnabled: u.user.transferPinEnabled,
     createdAt: u.createdAt,
   };
 }
@@ -77,6 +79,7 @@ export const roomService = {
             balance: true,
             isMaster: true,
             createdAt: true,
+            user: { select: { transferPinEnabled: true } },
           },
         },
       },
@@ -89,6 +92,15 @@ export const roomService = {
       ...toRoomVO(room),
       users,
       master: users.find((u) => u.isMaster),
+      bankCentralEnabled: room.bankCentralEnabled,
+      bankCentralBalance: Number(room.bankCentralBalance),
     };
+  },
+
+  async updateBankCentral(code: string, enabled: boolean): Promise<void> {
+    await prisma.room.update({
+      where: { code: code.toUpperCase() },
+      data: { bankCentralEnabled: enabled },
+    });
   },
 };
