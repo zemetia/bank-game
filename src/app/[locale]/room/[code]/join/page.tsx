@@ -16,20 +16,20 @@ export const metadata: Metadata = {
 };
 
 export default async function JoinPage({ params }: Props) {
-  const { code } = await params;
+  const { locale, code } = await params;
 
   const cookieStore = await cookies();
   const token = cookieStore.get('auth_token')?.value;
   const jwt = token ? verifyJwt(token) : null;
-  if (!jwt) redirect('/login');
+  if (!jwt) redirect({ href: '/login', locale });
 
   const room = await roomService.getByCode(code);
   if (!room) notFound();
 
-  const player = room.users.find((u) => u.userId === jwt.userId);
+  const player = room.users.find((u) => u.userId === jwt!.userId);
   if (!player) notFound();
 
-  if (player.isMaster) redirect(`/room/${code}/master`);
+  if (player.isMaster) redirect({ href: `/room/${code}/master`, locale });
 
   return (
     <main className="flex min-h-screen items-center justify-center px-4 py-16">
@@ -56,7 +56,7 @@ export default async function JoinPage({ params }: Props) {
             </div>
           </div>
           <div className="px-6 py-8">
-            <PinEntry roomCode={code} userId={jwt.userId} roomUserId={player.id} />
+            <PinEntry roomCode={code} userId={jwt!.userId} roomUserId={player.id} />
           </div>
         </div>
 

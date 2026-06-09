@@ -10,14 +10,16 @@ export const metadata: Metadata = {
 };
 
 interface Props {
+  params: Promise<{ locale: string }>;
   searchParams: Promise<{ from?: string }>;
 }
 
-export default async function LoginPage({ searchParams }: Props) {
+export default async function LoginPage({ params, searchParams }: Props) {
+  const { locale } = await params;
   const cookieStore = await cookies();
   const token = cookieStore.get('auth_token')?.value;
   if (token && verifyJwt(token)) {
-    redirect('/');
+    redirect({ href: '/', locale });
   }
 
   const { from } = await searchParams;
