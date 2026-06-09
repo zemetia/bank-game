@@ -21,7 +21,7 @@ export default async function JoinPage({ params }: Props) {
   const cookieStore = await cookies();
   const token = cookieStore.get('auth_token')?.value;
   const jwt = token ? await verifyJwt(token) : null;
-  if (!jwt) redirect({ href: '/login', locale });
+  if (!jwt) { redirect({ href: '/login', locale }); return null; }
 
   const room = await roomService.getByCode(code);
   if (!room) notFound();

@@ -24,11 +24,13 @@ function b64urlDecode(data: string): string {
   return new TextDecoder().decode(bytes);
 }
 
-function b64urlToBytes(data: string): Uint8Array {
+function b64urlToBytes(data: string): Uint8Array<ArrayBuffer> {
   const padded = data.replace(/-/g, '+').replace(/_/g, '/');
   const pad = padded.length % 4;
   const binary = atob(pad ? padded + '='.repeat(4 - pad) : padded);
-  return Uint8Array.from(binary, (c) => c.charCodeAt(0));
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return bytes;
 }
 
 async function getKey(): Promise<CryptoKey> {
