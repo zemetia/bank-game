@@ -24,9 +24,6 @@ coverage
 .eslintcache
 .prettierignore
 .prettierrc
-eslint.config.mjs
-postcss.config.mjs
-tsconfig.json
 vitest.config.*
 
 # Docs
