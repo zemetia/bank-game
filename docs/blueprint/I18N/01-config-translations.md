@@ -11,7 +11,8 @@
 | [src/i18n/routing.ts](../../../src/i18n/routing.ts) | `routing` — `defineRouting({ locales, defaultLocale, localePrefix })` |
 | [src/i18n/navigation.ts](../../../src/i18n/navigation.ts) | `Link`, `redirect`, `usePathname`, `useRouter`, `getPathname` |
 | [src/i18n/request.ts](../../../src/i18n/request.ts) | `getRequestConfig` — loads message JSON per locale per RSC render |
-| [middleware.ts](../../../middleware.ts) | `createMiddleware(routing)` — locale detection + redirect |
+| [proxy.ts](../../../proxy.ts) | `createMiddleware(routing)` wired via `intlMiddleware` — locale detection + redirect |
+| [src/app/page.tsx](../../../src/app/page.tsx) | Root redirect fallback — `/` → `/{locale}` (required when `localePrefix: 'always'`) |
 | [messages/](../../../messages/) | JSON translation files per locale |
 
 ---
@@ -22,30 +23,36 @@
 export const routing = defineRouting({
   locales: ['en', 'id'] as const,
   defaultLocale: 'en',
-  localePrefix: 'as-needed',
-  // default locale: /about (no prefix)
-  // other locales:  /id/about (prefixed)
+  localePrefix: 'always',
+  // every locale is always prefixed: /en/about, /id/about
+  // bare /about or / will be redirected to /{locale}/about or /{locale}
 });
 
 export type Locale = (typeof routing.locales)[number];  // 'en' | 'id'
 ```
 
+> **`localePrefix: 'always'` requires a root page redirect.** With this setting every URL must carry a locale prefix. `/` itself is unresolvable — `intlMiddleware` alone may not catch it reliably in all environments (Turbopack dev, cold start). Always provide `src/app/page.tsx` as a fallback. See [04-proxy.md — Root Redirect](../../ARCHITECTURE/04-proxy.md#root-redirect).
+
 ---
 
-## Middleware (middleware.ts)
+## i18n in proxy.ts (replaces standalone middleware.ts)
+
+`middleware.ts` does not exist in this project. i18n locale routing runs inside `proxy.ts` via `intlMiddleware`:
 
 ```ts
+// proxy.ts
 import createMiddleware from 'next-intl/middleware';
 import { routing } from './src/i18n/routing';
 
-export default createMiddleware(routing);
+const intlMiddleware = createMiddleware(routing);
 
-export const config = {
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)'],
-};
+export async function proxy(request: NextRequest) {
+  // ...rate limit, root redirect, auth guard...
+  return applySecurityHeaders(intlMiddleware(request));
+}
 ```
 
-Behavior: reads `Accept-Language` → sets locale cookie → redirects to locale-prefixed path for non-default locales.
+Behavior: reads `Accept-Language` → sets `NEXT_LOCALE` cookie → redirects unprefixed paths to `/{locale}/path`.
 
 ---
 

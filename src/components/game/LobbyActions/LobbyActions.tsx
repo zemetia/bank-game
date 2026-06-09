@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/i18n/navigation';
 import { useGameStore } from '@/stores';
 import { useToast } from '@/hooks';
 import { Button } from '@/components/ui/Button';
@@ -47,9 +47,12 @@ export function LobbyActions({ roomCode, currentRoomUser }: Props) {
   }
 
   return (
-    <p className="rounded-lg border border-[--color-border] bg-[--color-surface] px-4 py-3 text-sm text-[--color-foreground-muted]">
-      You haven&apos;t been added to this room. Ask the master to add you.
-    </p>
+    <div className="rounded-xl border border-border border-dashed bg-surface px-4 py-5 text-center">
+      <p className="text-sm text-foreground-muted">
+        You haven&apos;t been added to this room.
+      </p>
+      <p className="mt-1 text-xs text-foreground-subtle">Ask the room master to add you.</p>
+    </div>
   );
 }
 
@@ -94,7 +97,7 @@ export function AddPlayerButton({ roomCode, masterId, onSuccess }: { roomCode: s
         {open ? 'Cancel' : '+ Add Player'}
       </Button>
       {open && (
-        <form onSubmit={handleSubmit} className="flex flex-col gap-3 rounded-lg border border-[--color-border] bg-[--color-surface] p-4">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-3 rounded-xl border border-border bg-surface/80 p-4 backdrop-blur-sm">
           <Input
             label="Friend's username"
             placeholder="player_username"

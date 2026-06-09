@@ -1,7 +1,7 @@
 {
   "meta": {
-    "title": "Next.js Template",
-    "description": "A strict, production-ready Next.js 15 template"
+    "title": "BankGame",
+    "description": "Virtual bank simulator for board games and tabletop RPGs"
   },
   "hero": {
     "badge": "Production-Ready Template",

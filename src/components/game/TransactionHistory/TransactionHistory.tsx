@@ -1,70 +1,126 @@
 'use client';
 
+import { ArrowDownLeft, ArrowUpRight, ArrowLeftRight, Coins } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import type { TransactionVO } from '@/types/value-objects';
 
 TransactionHistory.displayName = 'TransactionHistory';
-
-const TX_LABELS: Record<string, string> = {
-  deposit: 'Deposit',
-  withdraw: 'Withdraw',
-  transfer: 'Transfer',
-};
 
 interface Props {
   transactions: TransactionVO[];
   currentUserId?: string;
 }
 
+type TxMeta = {
+  icon: React.ReactNode;
+  label: string;
+  sign: '+' | '−' | '';
+  colorClass: string;
+  bgClass: string;
+};
+
+function getTxMeta(tx: TransactionVO, currentUserId?: string): TxMeta {
+  const isIncoming = tx.toUserId === currentUserId;
+  const isOutgoing = tx.fromUserId === currentUserId;
+
+  if (tx.type === 'deposit') {
+    return {
+      icon: <Coins className="h-4 w-4" />,
+      label: 'Deposit',
+      sign: '+',
+      colorClass: 'text-success',
+      bgClass: 'bg-success-subtle text-success',
+    };
+  }
+  if (tx.type === 'withdraw') {
+    return {
+      icon: <ArrowUpRight className="h-4 w-4" />,
+      label: 'Withdrawal',
+      sign: '−',
+      colorClass: 'text-destructive',
+      bgClass: 'bg-destructive-subtle text-destructive',
+    };
+  }
+  if (isIncoming) {
+    return {
+      icon: <ArrowDownLeft className="h-4 w-4" />,
+      label: `From ${tx.fromUserName ?? 'Unknown'}`,
+      sign: '+',
+      colorClass: 'text-success',
+      bgClass: 'bg-success-subtle text-success',
+    };
+  }
+  if (isOutgoing) {
+    return {
+      icon: <ArrowUpRight className="h-4 w-4" />,
+      label: `To ${tx.toUserName ?? 'Unknown'}`,
+      sign: '−',
+      colorClass: 'text-destructive',
+      bgClass: 'bg-destructive-subtle text-destructive',
+    };
+  }
+  return {
+    icon: <ArrowLeftRight className="h-4 w-4" />,
+    label: 'Transfer',
+    sign: '',
+    colorClass: 'text-foreground',
+    bgClass: 'bg-surface-raised text-foreground-muted',
+  };
+}
+
+function formatDate(date: Date | string): string {
+  const d = date instanceof Date ? date : new Date(date);
+  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
+    + ' · '
+    + d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+}
+
 export function TransactionHistory({ transactions, currentUserId }: Props) {
   if (transactions.length === 0) {
-    return <p className="text-sm text-[--color-foreground-muted]">No transactions yet.</p>;
+    return (
+      <div className="flex flex-col items-center justify-center rounded-xl border border-border border-dashed bg-surface px-6 py-10 text-center">
+        <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-surface-raised">
+          <ArrowLeftRight className="h-5 w-5 text-foreground-subtle" />
+        </div>
+        <p className="text-sm font-medium text-foreground-muted">No transactions yet</p>
+        <p className="mt-1 text-xs text-foreground-subtle">Your transaction history will appear here</p>
+      </div>
+    );
   }
 
   return (
-    <ul className="flex flex-col gap-2">
-      {transactions.map((tx) => {
-        const isIncoming = tx.toUserId === currentUserId;
-        const isOutgoing = tx.fromUserId === currentUserId;
-        const sign = currentUserId
-          ? isIncoming
-            ? '+'
-            : isOutgoing
-              ? '−'
-              : ''
-          : '';
-
-        return (
-          <li
-            key={tx.id}
-            className="flex items-center justify-between rounded-lg border border-[--color-border] bg-[--color-surface] px-4 py-3 text-sm"
-          >
-            <div className="flex flex-col gap-0.5">
-              <span className="font-medium capitalize text-[--color-foreground]">
-                {TX_LABELS[tx.type] ?? tx.type}
-                {tx.fromUserName && ` from ${tx.fromUserName}`}
-                {tx.toUserName && ` to ${tx.toUserName}`}
-              </span>
-              {tx.note && (
-                <span className="text-[--color-foreground-muted]">{tx.note}</span>
-              )}
-              <span className="text-xs text-[--color-foreground-subtle]">
-                {tx.createdAt.toLocaleString()}
-              </span>
-            </div>
-            <span
+    <div className="overflow-hidden rounded-xl border border-border bg-surface">
+      <ul className="divide-y divide-border">
+        {transactions.map((tx, i) => {
+          const meta = getTxMeta(tx, currentUserId);
+          return (
+            <li
+              key={tx.id}
               className={cn(
-                'font-mono font-semibold tabular-nums',
-                sign === '+' && 'text-[--color-success]',
-                sign === '−' && 'text-[--color-destructive]',
-                !sign && 'text-[--color-foreground]',
+                'flex items-center gap-4 px-4 py-3.5 transition-colors hover:bg-surface-raised',
+                i === 0 && 'rounded-t-xl',
+                i === transactions.length - 1 && 'rounded-b-xl',
               )}
             >
-              {sign}{tx.amount.toLocaleString()}
-            </span>
-          </li>
-        );
-      })}
-    </ul>
+              <div className={cn('flex h-9 w-9 shrink-0 items-center justify-center rounded-full', meta.bgClass)}>
+                {meta.icon}
+              </div>
+
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium text-foreground">{meta.label}</p>
+                {tx.note && (
+                  <p className="mt-0.5 truncate text-xs text-foreground-muted">{tx.note}</p>
+                )}
+                <p className="mt-0.5 text-xs text-foreground-subtle">{formatDate(tx.createdAt)}</p>
+              </div>
+
+              <span className={cn('font-mono text-sm font-semibold tabular-nums shrink-0', meta.colorClass)}>
+                {meta.sign}{tx.amount.toLocaleString()}
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
   );
 }

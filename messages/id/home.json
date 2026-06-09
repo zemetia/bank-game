@@ -1,7 +1,7 @@
 {
   "meta": {
-    "title": "Template Next.js",
-    "description": "Template Next.js 15 yang ketat dan siap produksi"
+    "title": "BankGame",
+    "description": "Simulasi bank virtual untuk board game dan tabletop RPG"
   },
   "hero": {
     "badge": "Template Siap Produksi",

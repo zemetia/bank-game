@@ -4,7 +4,6 @@ import { useEffect } from 'react';
 import { useRouter } from '@/i18n/navigation';
 import { useGameStore } from '@/stores';
 import { BankDashboard } from '@/components/game/BankDashboard';
-import { Typography } from '@/components/ui/Typography';
 import { use } from 'react';
 
 interface Props {
@@ -29,9 +28,8 @@ export default function BankPage({ params }: Props) {
   if (!userId) return null;
 
   return (
-    <main className="min-h-screen bg-[--color-background]">
-      <div className="mx-auto max-w-lg px-4 py-12">
-        <Typography variant="h2" className="mb-6">My Bank</Typography>
+    <main className="min-h-screen">
+      <div className="mx-auto max-w-lg px-4 pb-16 pt-10">
         <BankDashboard roomCode={code} userId={userId} />
       </div>
     </main>

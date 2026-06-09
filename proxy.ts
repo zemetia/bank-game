@@ -10,9 +10,16 @@ import { applyAuthGuard } from './src/proxy/auth-guard';
 const intlMiddleware = createMiddleware(routing);
 
 export async function proxy(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
   // Rate limit — returns 429 early for /api/* if threshold exceeded
   const rateLimited = await applyRateLimit(request);
   if (rateLimited) return rateLimited;
+
+  // Bare root → let intlMiddleware redirect to /{locale} before auth guard runs
+  if (pathname === '/') {
+    return applySecurityHeaders(intlMiddleware(request));
+  }
 
   // Auth guard — redirect unauthenticated users to /login
   const authRedirect = await applyAuthGuard(request);

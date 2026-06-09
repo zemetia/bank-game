@@ -4,6 +4,36 @@
 
 ---
 
+## Root Redirect — `src/app/page.tsx`
+
+With `localePrefix: 'always'`, `/` has no matching `[locale]` segment and will 404 without an explicit redirect. `src/app/page.tsx` is the canonical fallback:
+
+```tsx
+// src/app/page.tsx  — NOT inside [locale], uses plain next/navigation
+import { headers } from 'next/headers';
+import { redirect } from 'next/navigation';
+import { routing } from '@/i18n/routing';
+import type { Locale } from '@/i18n/routing';
+
+function detectLocale(acceptLanguage: string | null): Locale {
+  if (!acceptLanguage) return routing.defaultLocale;
+  for (const locale of routing.locales) {
+    if (acceptLanguage.toLowerCase().includes(locale)) return locale;
+  }
+  return routing.defaultLocale;
+}
+
+export default async function RootPage() {
+  const headersList = await headers();
+  const locale = detectLocale(headersList.get('accept-language'));
+  redirect(`/${locale}`);
+}
+```
+
+`next/navigation`'s `redirect` is allowed here because `src/app/page.tsx` is **outside** the `[locale]` segment — there is no locale context yet, so `@/i18n/navigation`'s locale-aware redirect cannot apply.
+
+---
+
 ## Navigation — CRITICAL RULE
 
 **Never import from `next/navigation`.** Always use [src/i18n/navigation.ts](../../../src/i18n/navigation.ts).

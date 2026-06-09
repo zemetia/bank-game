@@ -1,0 +1,40 @@
+# Dependencies
+node_modules
+npm-debug.log*
+
+# Build output
+.next
+out
+dist
+
+# Dev / test artefacts
+.storybook
+coverage
+*.test.*
+*.stories.*
+
+# Local env files (inject via Dokploy environment tab, never bake into image)
+.env
+.env.local
+.env.*.local
+
+# Tooling & IDE
+.git
+.gitignore
+.eslintcache
+.prettierignore
+.prettierrc
+eslint.config.mjs
+postcss.config.mjs
+tsconfig.json
+vitest.config.*
+
+# Docs
+docs
+README*
+CLAUDE.md
+LEARN.md
+THIS.md
+
+# Sentry generated files
+.sentryclirc

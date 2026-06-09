@@ -5,10 +5,11 @@ import { useQuery } from '@tanstack/react-query';
 import { useRouter } from '@/i18n/navigation';
 import { useToast } from '@/hooks';
 import { useUserStore } from '@/stores';
+import { useGameStore } from '@/stores';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { CreateRoomModal } from '../CreateRoomModal';
-import { AuthModal } from '../AuthModal';
+import { Landmark, ChevronRight, UserCircle2, LogOut } from 'lucide-react';
 import type { RoomVO } from '@/types/value-objects';
 
 interface Props {
@@ -23,10 +24,10 @@ HomeLanding.displayName = 'HomeLanding';
 export function HomeLanding({ headline, sub, createLabel, createTitle }: Props) {
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
-  const [authOpen, setAuthOpen] = useState(false);
   const router = useRouter();
   const toast = useToast();
   const { userId, name, clearUser } = useUserStore();
+  const { clearSession } = useGameStore();
 
   const isLoggedIn = !!userId;
 
@@ -40,6 +41,13 @@ export function HomeLanding({ headline, sub, createLabel, createTitle }: Props) 
     },
     enabled: isLoggedIn,
   });
+
+  async function handleSignOut() {
+    await fetch('/api/auth/logout', { method: 'POST' });
+    clearUser();
+    clearSession();
+    window.location.replace('/login');
+  }
 
   async function handleJoin(e: React.FormEvent) {
     e.preventDefault();
@@ -58,87 +66,87 @@ export function HomeLanding({ headline, sub, createLabel, createTitle }: Props) 
   return (
     <>
       <div className="flex min-h-screen flex-col items-center justify-center px-4 py-16">
-        <div className="mb-10 flex w-full max-w-sm items-center justify-between">
-          <div className="text-center w-full">
-            <h1 className="mb-2 text-4xl font-bold tracking-tight text-[--color-foreground]">
-              {headline}
-            </h1>
-            <p className="text-sm text-[--color-foreground-muted]">{sub}</p>
+
+        {/* Brand header */}
+        <div className="mb-8 flex flex-col items-center gap-4 text-center">
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary glow-primary">
+            <Landmark className="h-8 w-8 text-primary-foreground" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight text-foreground">BankGame</h1>
+            <p className="mt-1.5 max-w-xs text-sm text-foreground-muted">{headline}</p>
           </div>
         </div>
 
-        {/* Account status */}
-        <div className="mb-6 flex w-full max-w-sm items-center justify-between rounded-lg border border-[--color-border] bg-[--color-surface] px-4 py-2.5">
-          {isLoggedIn ? (
-            <>
-              <span className="text-sm text-[--color-foreground]">
-                <span className="text-[--color-foreground-muted]">Signed in as </span>
+        {/* Main action card */}
+        <div className="w-full max-w-sm overflow-hidden rounded-2xl border border-border bg-surface/80 shadow-xl backdrop-blur-sm">
+          <div className="p-6">
+            <p className="mb-3 text-xs font-medium uppercase tracking-widest text-foreground-subtle">
+              Enter Room Code
+            </p>
+
+            <form onSubmit={handleJoin} className="flex flex-col gap-3">
+              <Input
+                placeholder="ABCDEF"
+                value={code}
+                onChange={(e) => setCode(e.target.value.toUpperCase())}
+                required
+                maxLength={6}
+                className="h-14 text-center text-2xl font-mono tracking-[0.4em] uppercase"
+                size="lg"
+                aria-label="Room Code"
+                autoComplete="off"
+                spellCheck={false}
+              />
+              <Button
+                type="submit"
+                size="xl"
+                fullWidth
+                isLoading={loading}
+                disabled={code.length < 6}
+              >
+                Enter Room
+              </Button>
+            </form>
+
+            <div className="my-5 flex items-center gap-3">
+              <div className="h-px flex-1 bg-border" />
+              <span className="text-xs uppercase tracking-widest text-foreground-subtle">or</span>
+              <div className="h-px flex-1 bg-border" />
+            </div>
+
+            <CreateRoomModal label={createLabel} title={createTitle} />
+          </div>
+
+          {/* Account status bar */}
+          <div className="flex items-center justify-between border-t border-border bg-surface-raised px-5 py-3">
+            <div className="flex items-center gap-2">
+              <UserCircle2 className="h-4 w-4 shrink-0 text-foreground-subtle" />
+              <span className="text-sm text-foreground">
+                <span className="text-foreground-muted">Signed in as </span>
                 <span className="font-medium">{name}</span>
               </span>
-              <button
-                onClick={clearUser}
-                className="text-xs text-[--color-foreground-subtle] hover:text-[--color-foreground] transition-colors"
-              >
-                Sign out
-              </button>
-            </>
-          ) : (
-            <>
-              <span className="text-sm text-[--color-foreground-muted]">No account</span>
-              <button
-                onClick={() => setAuthOpen(true)}
-                className="text-xs font-medium text-[--color-primary] hover:text-[--color-primary-hover] transition-colors"
-              >
-                Sign in / Register
-              </button>
-            </>
-          )}
-        </div>
-
-        {/* Join form */}
-        <form onSubmit={handleJoin} className="flex w-full max-w-sm flex-col gap-3">
-          <Input
-            placeholder="ABCDEF"
-            value={code}
-            onChange={(e) => setCode(e.target.value.toUpperCase())}
-            required
-            maxLength={6}
-            className="h-16 text-center text-2xl font-mono tracking-[0.3em] uppercase"
-            size="lg"
-            aria-label="Room Code"
-            autoComplete="off"
-            spellCheck={false}
-          />
-          <Button type="submit" size="xl" fullWidth isLoading={loading} disabled={code.length < 6}>
-            Enter Room
-          </Button>
-        </form>
-
-        <div className="my-6 flex w-full max-w-sm items-center gap-3">
-          <div className="h-px flex-1 bg-[--color-border]" />
-          <span className="text-xs uppercase tracking-widest text-[--color-foreground-subtle]">
-            or
-          </span>
-          <div className="h-px flex-1 bg-[--color-border]" />
-        </div>
-
-        <div className="w-full max-w-sm">
-          <CreateRoomModal label={createLabel} title={createTitle} />
+            </div>
+            <button
+              onClick={handleSignOut}
+              className="flex items-center gap-1.5 text-xs text-foreground-subtle transition-colors hover:text-destructive"
+            >
+              <LogOut className="h-3 w-3" />
+              Sign out
+            </button>
+          </div>
         </div>
 
         {/* Your Rooms */}
         {isLoggedIn && (
-          <div className="mt-8 w-full max-w-sm">
-            <h2 className="mb-3 text-sm font-semibold uppercase tracking-widest text-[--color-foreground-subtle]">
+          <div className="mt-6 w-full max-w-sm">
+            <h2 className="mb-3 text-xs font-semibold uppercase tracking-widest text-foreground-subtle">
               Your Rooms
             </h2>
             {roomsLoading ? (
               <div className="flex flex-col gap-2">
                 {[1, 2].map((i) => (
-                  <div
-                    key={i}
-                    className="h-14 animate-pulse rounded-lg bg-[--color-surface]"
-                  />
+                  <div key={i} className="h-12 animate-pulse rounded-xl bg-surface" />
                 ))}
               </div>
             ) : myRooms && myRooms.length > 0 ? (
@@ -147,26 +155,30 @@ export function HomeLanding({ headline, sub, createLabel, createTitle }: Props) 
                   <li key={room.id}>
                     <button
                       onClick={() => router.push(`/room/${room.code}`)}
-                      className="flex w-full items-center justify-between rounded-lg border border-[--color-border] bg-[--color-surface] px-4 py-3 transition-colors hover:border-[--color-primary] hover:bg-[--color-surface-raised] text-left"
+                      className="flex w-full items-center justify-between rounded-xl border border-border bg-surface px-4 py-3 text-left transition-all hover:border-primary/50 hover:bg-surface-raised"
                     >
-                      <span className="font-medium text-[--color-foreground]">{room.name}</span>
-                      <span className="font-mono text-sm tracking-widest text-[--color-foreground-muted]">
-                        {room.code}
-                      </span>
+                      <span className="font-medium text-foreground">{room.name}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono text-xs tracking-widest text-foreground-muted">
+                          {room.code}
+                        </span>
+                        <ChevronRight className="h-3.5 w-3.5 text-foreground-subtle" />
+                      </div>
                     </button>
                   </li>
                 ))}
               </ul>
             ) : (
-              <p className="text-sm text-[--color-foreground-subtle]">
+              <p className="rounded-xl border border-border border-dashed bg-surface px-4 py-6 text-center text-sm text-foreground-subtle">
                 No rooms yet. Create one above.
               </p>
             )}
           </div>
         )}
+
+        <p className="mt-8 text-center text-xs text-foreground-subtle">{sub}</p>
       </div>
 
-      <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} />
     </>
   );
 }

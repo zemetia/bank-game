@@ -1,8 +1,8 @@
 'use client';
 
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 import { cn } from '@/lib/cn';
-import { Button } from '@/components/ui/Button';
+import { Landmark } from 'lucide-react';
 
 export interface HeaderProps {
   className?: string;
@@ -16,38 +16,16 @@ export function Header({ className }: HeaderProps) {
         className,
       )}
     >
-      <div className="container-page flex h-16 items-center justify-between">
-        <Link href="/" className="flex items-center gap-2 font-bold tracking-tight text-foreground">
-          <span
-            className="flex h-7 w-7 items-center justify-center rounded-md bg-primary text-primary-foreground text-sm font-black"
-            aria-hidden="true"
-          >
-            N
-          </span>
-          <span>NextTemplate</span>
+      <div className="container-page flex h-14 items-center">
+        <Link
+          href="/"
+          className="flex items-center gap-2.5 font-bold tracking-tight text-foreground transition-opacity hover:opacity-80"
+        >
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary">
+            <Landmark className="h-4 w-4 text-primary-foreground" />
+          </div>
+          <span>BankGame</span>
         </Link>
-
-        <nav aria-label="Main navigation" className="hidden items-center gap-6 md:flex">
-          <Link
-            href="/"
-            className="text-sm text-foreground-muted transition-colors hover:text-foreground"
-          >
-            Home
-          </Link>
-          <Link
-            href="/about"
-            className="text-sm text-foreground-muted transition-colors hover:text-foreground"
-          >
-            About
-          </Link>
-        </nav>
-
-        <div className="flex items-center gap-3">
-          <Button size="sm" variant="ghost">
-            Sign In
-          </Button>
-          <Button size="sm">Get Started</Button>
-        </div>
       </div>
     </header>
   );

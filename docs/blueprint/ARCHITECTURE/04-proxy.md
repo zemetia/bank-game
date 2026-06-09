@@ -27,6 +27,15 @@ proxy.ts  (Node.js — runs before route rendering)
     │       → 429 Too Many Requests (early return)        if exceeded
     │       → null                                        if ok
     │
+    ├── pathname === '/'  (bare root — short-circuit before auth guard)
+    │       intlMiddleware(request)
+    │       → redirects to /{locale}                      (see Root Redirect below)
+    │
+    ├── applyAuthGuard(request)
+    │       unauthenticated + non-public page
+    │       → redirect to /{locale}/login?from=<path>     (early return)
+    │       → null                                        if ok
+    │
     ├── /api/* routes
     │       applySecurityHeaders(NextResponse.next())
     │       → continue to Route Handler
@@ -130,6 +139,51 @@ Static assets (`_next/static`, `_next/image`, `favicon.ico`, images) are exclude
 
 ---
 
+## Root Redirect
+
+`/` (bare root) **must** be handled in two places:
+
+### 1. proxy.ts — short-circuit before auth guard
+
+`intlMiddleware` can redirect `/` → `/{locale}`, but only if it runs before `applyAuthGuard`. Without the short-circuit, the auth guard intercepts `/` first and redirects unauthenticated users to `/{locale}/login?from=/` instead.
+
+```ts
+// proxy.ts
+if (pathname === '/') {
+  return applySecurityHeaders(intlMiddleware(request));
+}
+```
+
+### 2. src/app/page.tsx — guaranteed App Router fallback
+
+In Turbopack dev mode, the middleware manifest can appear empty (`"middleware": {}`). This is a Turbopack internal state artifact — it does not mean the proxy is broken. However, since the manifest state is opaque, always add an explicit root page as a fallback:
+
+```tsx
+// src/app/page.tsx
+import { headers } from 'next/headers';
+import { redirect } from 'next/navigation';
+import { routing } from '@/i18n/routing';
+import type { Locale } from '@/i18n/routing';
+
+function detectLocale(acceptLanguage: string | null): Locale {
+  if (!acceptLanguage) return routing.defaultLocale;
+  for (const locale of routing.locales) {
+    if (acceptLanguage.toLowerCase().includes(locale)) return locale;
+  }
+  return routing.defaultLocale;
+}
+
+export default async function RootPage() {
+  const headersList = await headers();
+  const locale = detectLocale(headersList.get('accept-language'));
+  redirect(`/${locale}`);
+}
+```
+
+**Rule:** any time `localePrefix: 'always'` is used, `src/app/page.tsx` with a redirect must exist. The proxy short-circuit and the page redirect are complementary — both must be present.
+
+---
+
 ## Adding New Proxy Logic
 
 1. Create `src/proxy/<concern>.ts`
@@ -137,17 +191,21 @@ Static assets (`_next/static`, `_next/image`, `favicon.ico`, images) are exclude
 3. Call it in `proxy.ts` — before `intlMiddleware` if it may short-circuit (return early), after if it only mutates headers
 
 ```ts
-// proxy.ts — example adding auth guard
-import { applyAuthGuard } from './src/proxy/auth-guard';
-
+// proxy.ts — current structure
 export async function proxy(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
   const rateLimited = await applyRateLimit(request);
   if (rateLimited) return rateLimited;
 
-  const authBlocked = await applyAuthGuard(request);  // ← new early-exit handler
-  if (authBlocked) return authBlocked;
+  if (pathname === '/') {
+    return applySecurityHeaders(intlMiddleware(request));
+  }
 
-  if (request.nextUrl.pathname.startsWith('/api')) {
+  const authRedirect = await applyAuthGuard(request);
+  if (authRedirect) return authRedirect;
+
+  if (pathname.startsWith('/api')) {
     return applySecurityHeaders(NextResponse.next());
   }
 

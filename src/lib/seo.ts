@@ -61,8 +61,7 @@ export function buildMetadata({
   const resolvedDescription = description ?? siteConfig.description;
   const resolvedOgImage = ogImage ?? siteConfig.ogImage;
 
-  const localePrefix =
-    locale === routing.defaultLocale ? '' : `/${locale}`;
+  const localePrefix = `/${locale}`;
   const canonicalPath = path === '/' ? '' : path;
   const canonicalUrl = `${siteConfig.url}${localePrefix}${canonicalPath}`;
 

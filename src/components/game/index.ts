@@ -9,6 +9,7 @@ export { AuthModal } from './AuthModal';
 export { InviteUserForm } from './InviteUserForm';
 export { PlayerList } from './PlayerList';
 export { PinEntry } from './PinEntry';
+export { PinOverlay } from './PinOverlay';
 export { BankDashboard } from './BankDashboard';
 export { TransactionForm } from './TransactionForm';
 export { TransactionHistory } from './TransactionHistory';

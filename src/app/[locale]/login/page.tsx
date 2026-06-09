@@ -1,12 +1,12 @@
 import type { Metadata } from 'next';
 import { cookies } from 'next/headers';
-import { redirect } from 'next/navigation';
+import { redirect } from '@/i18n/navigation';
 import { verifyJwt } from '@/lib/jwt';
 import { ParticlesBackground } from '@/components/ui/ParticlesBackground';
 import { LoginPageClient } from '@/components/game/LoginPageClient';
 
 export const metadata: Metadata = {
-  title: 'Sign In — BankGame',
+  title: 'Sign In',
 };
 
 interface Props {

@@ -64,6 +64,14 @@ export default async function LocaleLayout({ children, params }: Props) {
       suppressHydrationWarning
     >
       <body>
+        <div
+          aria-hidden
+          className="pointer-events-none fixed inset-x-0 top-0 -z-10 h-[700px]"
+          style={{
+            background:
+              'radial-gradient(ellipse 120% 60% at 50% 0%, var(--color-primary-glow), transparent 70%)',
+          }}
+        />
         <NextIntlClientProvider messages={messages}>
           <PostHogProvider>
             {children}
